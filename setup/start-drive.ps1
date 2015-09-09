@@ -14,4 +14,4 @@ copy acquisition.bonsai* $dataPath
 # Run bonsai
 cd $dataPath
 Write-Host $dataPath\acquisition.bonsai
-& .\acquisition.bonsai --start
+& .\acquisition.bonsai
