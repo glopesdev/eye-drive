@@ -154,24 +154,6 @@ def process(value):
           </q5:Format>
         </Generator>
       </Expression>
-      <Expression xsi:type="Source">
-        <PropertyMappings />
-        <Generator xsi:type="q7:KeyDown">
-          <q7:Filter>C</q7:Filter>
-        </Generator>
-      </Expression>
-      <Expression xsi:type="Combinator">
-        <PropertyMappings />
-        <Combinator xsi:type="Timestamp" />
-      </Expression>
-      <Expression xsi:type="q4:CsvWriter">
-        <q4:PropertyMappings />
-        <q4:FileName>events.csv</q4:FileName>
-        <q4:Append>false</q4:Append>
-        <q4:Overwrite>false</q4:Overwrite>
-        <q4:Suffix>None</q4:Suffix>
-        <q4:IncludeHeader>false</q4:IncludeHeader>
-      </Expression>
     </Nodes>
     <Edges>
       <Edge>
@@ -264,16 +246,6 @@ def process(value):
         <To>18</To>
         <Label>Source1</Label>
       </Edge>
-      <Edge>
-        <From>20</From>
-        <To>21</To>
-        <Label>Source1</Label>
-      </Edge>
-      <Edge>
-        <From>21</From>
-        <To>22</To>
-        <Label>Source1</Label>
-      </Edge>
     </Edges>
   </Workflow>
   <ExtensionTypes>
@@ -290,6 +262,5 @@ def process(value):
     <Type>Bonsai.Reactive.Sample, Bonsai.Core, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null</Type>
     <Type>Bonsai.Reactive.CombineLatest, Bonsai.Core, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null</Type>
     <Type>Bonsai.Audio.AudioCapture, Bonsai.Audio, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null</Type>
-    <Type>Bonsai.Windows.Input.KeyDown, Bonsai.Windows.Input, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null</Type>
   </ExtensionTypes>
 </WorkflowBuilder>
