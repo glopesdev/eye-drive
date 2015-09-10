@@ -1,0 +1,211 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WorkflowBuilder Version="2.2.0">
+  <Workflow xmlns:q1="clr-namespace:Bonsai.Scripting;assembly=Bonsai.Scripting" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:q2="clr-namespace:Bonsai.Vision;assembly=Bonsai.Vision" xmlns="https://horizongir.org/bonsai">
+    <Nodes>
+      <Expression xsi:type="q1:PythonTransform">
+        <q1:Script>import clr
+clr.AddReference("OpenCV.Net")
+clr.AddReference("Bonsai.Vision")
+from System import Math
+from Bonsai.Vision import ConnectedComponent
+from OpenCV.Net import *
+
+@returns(ConnectedComponent)
+def process(value):
+  output = None
+  bestdiff = 0
+  for component in value:
+    #rect = component.Contour.Rect
+    #mask = IplImage(component.Patch.Size, IplDepth.U8, 1)
+    #mask.SetZero()
+    #CV.DrawContours(mask, component.Contour, Scalar.All(1), Scalar.All(0), 0, -1, LineFlags.Connected8, Point(-rect.X, -rect.Y))
+    #miu = clr.Reference[Scalar]()
+    #std = clr.Reference[Scalar]()
+    #CV.AvgSdv(component.Patch, miu, std, mask)
+    ratio = component.MajorAxisLength / component.MinorAxisLength
+    ratiodiff = Math.Abs(ratio - 1)
+    if ratiodiff &gt; 2:
+      continue
+
+    if output is None or ratiodiff &lt; bestdiff:
+      output = component
+      bestdiff = ratiodiff
+
+  if output is None:
+    output = ConnectedComponent()
+  return output</q1:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:MorphologicalOperator">
+          <q2:Size>
+            <q2:Width>5</q2:Width>
+            <q2:Height>5</q2:Height>
+          </q2:Size>
+          <q2:Anchor>
+            <q2:X>2</q2:X>
+            <q2:Y>2</q2:Y>
+          </q2:Anchor>
+          <q2:Shape>Ellipse</q2:Shape>
+          <q2:Iterations>3</q2:Iterations>
+          <q2:Operation>Close</q2:Operation>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Zip" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:AdaptiveThreshold">
+          <q2:MaxValue>255</q2:MaxValue>
+          <q2:AdaptiveMethod>MeanC</q2:AdaptiveMethod>
+          <q2:ThresholdType>BinaryInv</q2:ThresholdType>
+          <q2:BlockSize>933</q2:BlockSize>
+          <q2:Parameter>75</q2:Parameter>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:FileCapture">
+          <q2:FileName>eye.avi</q2:FileName>
+          <q2:PlaybackRate>0</q2:PlaybackRate>
+          <q2:StartPosition>18279</q2:StartPosition>
+          <q2:PositionUnits>Frames</q2:PositionUnits>
+          <q2:Loop>false</q2:Loop>
+          <q2:Playing>false</q2:Playing>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:FindContours">
+          <q2:Mode>External</q2:Mode>
+          <q2:Method>ChainApproxNone</q2:Method>
+          <q2:Offset>
+            <q2:X>0</q2:X>
+            <q2:Y>0</q2:Y>
+          </q2:Offset>
+          <q2:MinArea>200</q2:MinArea>
+          <q2:MaxArea>5000</q2:MaxArea>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:BinaryRegionAnalysis" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:Grayscale" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:FindContours">
+          <q2:Mode>External</q2:Mode>
+          <q2:Method>ChainApproxNone</q2:Method>
+          <q2:Offset>
+            <q2:X>0</q2:X>
+            <q2:Y>0</q2:Y>
+          </q2:Offset>
+          <q2:MinArea>200</q2:MinArea>
+          <q2:MaxArea>5000</q2:MaxArea>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:DrawContours">
+          <q2:MaxLevel>1</q2:MaxLevel>
+          <q2:Thickness>-1</q2:Thickness>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:MorphologicalOperator">
+          <q2:Size>
+            <q2:Width>5</q2:Width>
+            <q2:Height>5</q2:Height>
+          </q2:Size>
+          <q2:Anchor>
+            <q2:X>2</q2:X>
+            <q2:Y>2</q2:Y>
+          </q2:Anchor>
+          <q2:Shape>Ellipse</q2:Shape>
+          <q2:Iterations>3</q2:Iterations>
+          <q2:Operation>Close</q2:Operation>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:Smooth">
+          <q2:SmoothType>Gaussian</q2:SmoothType>
+          <q2:Size1>13</q2:Size1>
+          <q2:Size2>0</q2:Size2>
+          <q2:Sigma1>9</q2:Sigma1>
+          <q2:Sigma2>0</q2:Sigma2>
+        </Combinator>
+      </Expression>
+    </Nodes>
+    <Edges>
+      <Edge>
+        <From>1</From>
+        <To>8</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>2</From>
+        <To>6</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>3</From>
+        <To>10</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>7</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>5</From>
+        <To>9</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>6</From>
+        <To>0</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>7</From>
+        <To>11</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>8</From>
+        <To>2</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>9</From>
+        <To>1</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>10</From>
+        <To>5</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>11</From>
+        <To>3</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>11</From>
+        <To>2</To>
+        <Label>Source2</Label>
+      </Edge>
+    </Edges>
+  </Workflow>
+  <ExtensionTypes>
+    <Type>Bonsai.Scripting.PythonTransform, Bonsai.Scripting, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.MorphologicalOperator, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.Zip, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.AdaptiveThreshold, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FileCapture, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FindContours, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.BinaryRegionAnalysis, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Grayscale, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.DrawContours, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Smooth, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+  </ExtensionTypes>
+</WorkflowBuilder>
