@@ -27,11 +27,17 @@
 import time
 clr.AddReference("System.Core")
 from System.Linq import Enumerable
+from System import DateTimeOffset
+
+mintime = DateTimeOffset.Parse('2015-09-10T09:52:28.2866048+01:00')
+maxtime = DateTimeOffset.Parse('2015-09-10T09:52:38.6721536+01:00')
 
 @returns(int)
 def process(value):
+  value = Enumerable.Where(value, lambda x:x.time &gt; mintime and x.time &lt; maxtime)
   for c in Enumerable.OrderBy(value, lambda x:x.time):
-    yield c.stream</q2:Script>
+    yield c.stream
+    time.sleep(0.01)</q2:Script>
       </Expression>
       <Expression xsi:type="Condition">
         <Name>Cam0</Name>
@@ -93,7 +99,7 @@ def process(value):
         <Combinator xsi:type="q3:FileCapture">
           <q3:FileName>world.avi</q3:FileName>
           <q3:PlaybackRate>0</q3:PlaybackRate>
-          <q3:StartPosition>0</q3:StartPosition>
+          <q3:StartPosition>2133</q3:StartPosition>
           <q3:PositionUnits>Frames</q3:PositionUnits>
           <q3:Loop>false</q3:Loop>
           <q3:Playing>true</q3:Playing>
@@ -103,31 +109,199 @@ def process(value):
         <Combinator xsi:type="q3:FileCapture">
           <q3:FileName>eye.avi</q3:FileName>
           <q3:PlaybackRate>0</q3:PlaybackRate>
-          <q3:StartPosition>0</q3:StartPosition>
+          <q3:StartPosition>1927</q3:StartPosition>
           <q3:PositionUnits>Frames</q3:PositionUnits>
           <q3:Loop>false</q3:Loop>
           <q3:Playing>true</q3:Playing>
         </Combinator>
       </Expression>
       <Expression xsi:type="Combinator">
-        <Combinator xsi:type="q3:Resize">
-          <q3:Size>
-            <q3:Width>853</q3:Width>
-            <q3:Height>480</q3:Height>
-          </q3:Size>
-          <q3:Interpolation>Linear</q3:Interpolation>
+        <Combinator xsi:type="q3:LoadImage">
+          <q3:FileName>C:\Users\Gonçalo\Desktop\target.png</q3:FileName>
+          <q3:Mode>Grayscale</q3:Mode>
         </Combinator>
       </Expression>
       <Expression xsi:type="Combinator">
-        <Combinator xsi:type="q4:Sum" />
+        <Combinator xsi:type="q3:Grayscale" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="CombineLatest" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q4:MatchTemplate">
+          <q4:MatchingMethod>CorrelationCoefficientNormed</q4:MatchingMethod>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q4:Extrema" />
       </Expression>
       <Expression xsi:type="MemberSelector">
-        <Selector>Source.Val2</Selector>
+        <Selector>Source.MaxLocation</Selector>
       </Expression>
-      <Expression xsi:type="GreaterThan">
-        <Operand xsi:type="DoubleProperty">
-          <Value>80000000</Value>
-        </Operand>
+      <Expression xsi:type="NestedWorkflow">
+        <Name>EyeTrack</Name>
+        <Workflow>
+          <Nodes>
+            <Expression xsi:type="MemberSelector">
+              <Selector>Source.Centroid</Selector>
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:LargestBinaryRegion" />
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:BinaryRegionAnalysis" />
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:FindContours">
+                <q3:Mode>External</q3:Mode>
+                <q3:Method>ChainApproxNone</q3:Method>
+                <q3:Offset>
+                  <q3:X>0</q3:X>
+                  <q3:Y>0</q3:Y>
+                </q3:Offset>
+                <q3:MinArea>100</q3:MinArea>
+                <q3:MaxArea xsi:nil="true" />
+              </Combinator>
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:MorphologicalOperator">
+                <q3:Size>
+                  <q3:Width>5</q3:Width>
+                  <q3:Height>5</q3:Height>
+                </q3:Size>
+                <q3:Anchor>
+                  <q3:X>3</q3:X>
+                  <q3:Y>3</q3:Y>
+                </q3:Anchor>
+                <q3:Shape>Ellipse</q3:Shape>
+                <q3:Iterations>2</q3:Iterations>
+                <q3:Operation>Dilate</q3:Operation>
+              </Combinator>
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:AdaptiveThreshold">
+                <q3:MaxValue>255</q3:MaxValue>
+                <q3:AdaptiveMethod>GaussianC</q3:AdaptiveMethod>
+                <q3:ThresholdType>BinaryInv</q3:ThresholdType>
+                <q3:BlockSize>119</q3:BlockSize>
+                <q3:Parameter>22</q3:Parameter>
+              </Combinator>
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:Smooth">
+                <q3:SmoothType>Gaussian</q3:SmoothType>
+                <q3:Size1>13</q3:Size1>
+                <q3:Size2>0</q3:Size2>
+                <q3:Sigma1>8</q3:Sigma1>
+                <q3:Sigma2>0</q3:Sigma2>
+              </Combinator>
+            </Expression>
+            <Expression xsi:type="Combinator">
+              <Combinator xsi:type="q3:Grayscale" />
+            </Expression>
+            <Expression xsi:type="WorkflowOutput" />
+            <Expression xsi:type="WorkflowInput">
+              <Name>Source1</Name>
+            </Expression>
+          </Nodes>
+          <Edges>
+            <Edge>
+              <From>0</From>
+              <To>8</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>1</From>
+              <To>0</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>2</From>
+              <To>1</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>3</From>
+              <To>2</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>4</From>
+              <To>3</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>5</From>
+              <To>4</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>6</From>
+              <To>5</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>7</From>
+              <To>6</To>
+              <Label>Source1</Label>
+            </Edge>
+            <Edge>
+              <From>9</From>
+              <To>7</To>
+              <Label>Source1</Label>
+            </Edge>
+          </Edges>
+        </Workflow>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="CombineLatest" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="Sample" />
+      </Expression>
+      <Expression xsi:type="q2:PythonTransform">
+        <q2:Script>import clr
+clr.AddReference("System.Core")
+clr.AddReference("MathNet.Numerics")
+from MathNet.Numerics.LinearAlgebra.Single import DenseMatrix
+from System.Linq import Enumerable
+from System import Tuple
+
+@returns(Tuple[DenseMatrix,DenseMatrix])
+def process(value):
+  x = DenseMatrix(len(value),4)
+  y1 = DenseMatrix(len(value),1)
+  y2 = DenseMatrix(len(value),1)
+  for i,observation in enumerate(value):
+    world = observation.Item1
+    eye = observation.Item2
+    x[i,0] = eye.X
+    x[i,1] = eye.Y
+    x[i,2] = eye.X * eye.X
+    x[i,3] = eye.Y * eye.Y
+    y1[i,0] = world.X
+    y2[i,0] = world.Y
+
+  m1 = x.QR().Solve(y1)
+  m2 = x.QR().Solve(y2)
+  return Tuple.Create(m1,m2)</q2:Script>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="ToList" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:PythonTextWriter">
+          <q2:Script>def process(value):
+  for v in value.Item1.Enumerate():
+    print v,
+  print
+  for v in value.Item2.Enumerate():
+    print v,
+  print</q2:Script>
+          <q2:FileName>calibration.csv</q2:FileName>
+          <q2:Append>false</q2:Append>
+          <q2:Suffix>None</q2:Suffix>
+        </Combinator>
       </Expression>
     </Nodes>
     <Edges>
@@ -183,13 +357,18 @@ def process(value):
       </Edge>
       <Edge>
         <From>9</From>
-        <To>11</To>
+        <To>12</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>10</From>
+        <To>17</To>
         <Label>Source1</Label>
       </Edge>
       <Edge>
         <From>11</From>
-        <To>12</To>
-        <Label>Source1</Label>
+        <To>13</To>
+        <Label>Source2</Label>
       </Edge>
       <Edge>
         <From>12</From>
@@ -199,6 +378,51 @@ def process(value):
       <Edge>
         <From>13</From>
         <To>14</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>14</From>
+        <To>15</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>15</From>
+        <To>16</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>16</From>
+        <To>18</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>17</From>
+        <To>18</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>17</From>
+        <To>19</To>
+        <Label>Source2</Label>
+      </Edge>
+      <Edge>
+        <From>18</From>
+        <To>19</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>19</From>
+        <To>21</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>20</From>
+        <To>22</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>21</From>
+        <To>20</To>
         <Label>Source1</Label>
       </Edge>
     </Edges>
@@ -212,9 +436,19 @@ def process(value):
     <Type>Bonsai.Expressions.EqualBuilder, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
     <Type>Bonsai.Expressions.IntProperty, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
     <Type>Bonsai.Vision.FileCapture, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
-    <Type>Bonsai.Vision.Resize, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
-    <Type>Bonsai.Dsp.Sum, Bonsai.Dsp, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
-    <Type>Bonsai.Expressions.GreaterThanBuilder, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
-    <Type>Bonsai.Expressions.DoubleProperty, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.LoadImage, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Grayscale, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.CombineLatest, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Dsp.MatchTemplate, Bonsai.Dsp, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Dsp.Extrema, Bonsai.Dsp, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.LargestBinaryRegion, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.BinaryRegionAnalysis, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FindContours, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.MorphologicalOperator, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.AdaptiveThreshold, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Smooth, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Reactive.Sample, Bonsai.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Scripting.PythonTransform, Bonsai.Scripting, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Scripting.PythonTextWriter, Bonsai.Scripting, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
   </ExtensionTypes>
 </WorkflowBuilder>
