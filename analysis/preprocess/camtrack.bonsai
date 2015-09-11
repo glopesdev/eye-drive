@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<WorkflowBuilder Version="2.2.0">
+  <Workflow xmlns:q1="clr-namespace:Bonsai.Video;assembly=Bonsai.Video" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:q2="clr-namespace:Bonsai.Vision;assembly=Bonsai.Vision" xmlns="https://horizongir.org/bonsai">
+    <Nodes>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:VideoCaptureDevice">
+          <q1:Index>0</q1:Index>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q1:VideoCaptureDevice">
+          <q1:Index>1</q1:Index>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:Grayscale" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:AdaptiveThreshold">
+          <q2:MaxValue>255</q2:MaxValue>
+          <q2:AdaptiveMethod>GaussianC</q2:AdaptiveMethod>
+          <q2:ThresholdType>BinaryInv</q2:ThresholdType>
+          <q2:BlockSize>119</q2:BlockSize>
+          <q2:Parameter>20</q2:Parameter>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:MorphologicalOperator">
+          <q2:Size>
+            <q2:Width>5</q2:Width>
+            <q2:Height>5</q2:Height>
+          </q2:Size>
+          <q2:Anchor>
+            <q2:X>3</q2:X>
+            <q2:Y>3</q2:Y>
+          </q2:Anchor>
+          <q2:Shape>Ellipse</q2:Shape>
+          <q2:Iterations>2</q2:Iterations>
+          <q2:Operation>Dilate</q2:Operation>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:FindContours">
+          <q2:Mode>External</q2:Mode>
+          <q2:Method>ChainApproxNone</q2:Method>
+          <q2:Offset>
+            <q2:X>0</q2:X>
+            <q2:Y>0</q2:Y>
+          </q2:Offset>
+          <q2:MinArea>100</q2:MinArea>
+          <q2:MaxArea xsi:nil="true" />
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:BinaryRegionAnalysis" />
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:Smooth">
+          <q2:SmoothType>Gaussian</q2:SmoothType>
+          <q2:Size1>13</q2:Size1>
+          <q2:Size2>0</q2:Size2>
+          <q2:Sigma1>8</q2:Sigma1>
+          <q2:Sigma2>0</q2:Sigma2>
+        </Combinator>
+      </Expression>
+      <Expression xsi:type="Combinator">
+        <Combinator xsi:type="q2:LargestBinaryRegion" />
+      </Expression>
+      <Expression xsi:type="MemberSelector">
+        <Selector>Source.Centroid</Selector>
+      </Expression>
+    </Nodes>
+    <Edges>
+      <Edge>
+        <From>1</From>
+        <To>2</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>2</From>
+        <To>7</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>3</From>
+        <To>4</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>4</From>
+        <To>5</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>5</From>
+        <To>6</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>6</From>
+        <To>8</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>7</From>
+        <To>3</To>
+        <Label>Source1</Label>
+      </Edge>
+      <Edge>
+        <From>8</From>
+        <To>9</To>
+        <Label>Source1</Label>
+      </Edge>
+    </Edges>
+  </Workflow>
+  <ExtensionTypes>
+    <Type>Bonsai.Video.VideoCaptureDevice, Bonsai.Video, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Grayscale, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.AdaptiveThreshold, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.MorphologicalOperator, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.FindContours, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.BinaryRegionAnalysis, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.Smooth, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+    <Type>Bonsai.Vision.LargestBinaryRegion, Bonsai.Vision, Version=2.2.0.0, Culture=neutral, PublicKeyToken=null</Type>
+  </ExtensionTypes>
+</WorkflowBuilder>
